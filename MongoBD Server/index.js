@@ -10,7 +10,7 @@ var jsonParser = bodyParser.json();
 //mongoose.connect('mongodb://localhost:27017/voter');
 app.use(cors());
 //mongoose.connect('mongodb+srv://username:password@cluster0.f1o1r.mongodb.net/voter');
-mongoose.connect('mongodb+srv://Mongo1:Sbera8mfs@mongo1.rprqi.mongodb.net/voter');
+mongoose.connect('mongodb+srv://Mongo1:username@mongo1.rprqi.mongodb.net/voter');
 
 app.get("/getConstituencies", (req, res )=>{
     ConstModel.find({}, (err, result) =>{

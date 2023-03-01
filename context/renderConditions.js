@@ -4,8 +4,9 @@ import {ethers} from 'ethers';
 import {create as ipfsHttpClient} from "ipfs-http-client";
 import axios from "axios";
 import {useRouter} from "next/router";
-import {VotingAddress, VotingAddressABI} from "./constant";
 
+
+import {VotingAddress, VotingAddressABI} from "./constant";
 
 
 const projectId = '2GVKTo27xkr4HFAXtQ6196j9dy9';
@@ -27,8 +28,6 @@ const fetchContract = (signerOrProvider) => new ethers.Contract(VotingAddress, V
 
 export const VotingContext =  React.createContext();
 export const VotingProvider = ({children}) => {
-   
-
     const votingTitle = 'My first smart contract app';
     const router = useRouter();
     const [currentAccount, setCurrentAccount] = useState('');
@@ -38,20 +37,14 @@ export const VotingProvider = ({children}) => {
     const pushVoter = [];
     const [candidateArray, setCandidateArray] = useState(pushCandidate);
     const [error, seterr] = useState('');
-    const [error2, seterr2] = useState('');
     const highestVote = [];
     const [voterArray, setVoterArray] = useState(pushVoter);
     const [voterLength, setVoterLength] = useState('');
     const [voterAddress, setVoterAddress] = useState([]);
     const [organizerAddress, setOrganizerAddress] = useState('');
     const [currentStatus, setStatus] = useState('');
-    const [startingDate, setStartingDate] = useState('');
-    const [endingDate, setEndingDate] = useState('');
-    const [shortStartingDate, setshortStartingDate] = useState('');
-    const [shortEndingDate, setshortEndingDate] = useState('');
-    const [disabled, setDisabled] = useState('');
-    const [voterStatus, setvoterStatus] = useState('');
-   
+    const [RegVoter, setRegVoter] = useState(false);
+    const [isNewUser, setNewUser] = useState(false);
     const checkIfWalletIsConnected = async()=>{
         if (!window.ethereum) return setError("Please install MetaMask");
         const account = await window.ethereum.request({method: "eth_accounts"});
@@ -90,138 +83,18 @@ export const VotingProvider = ({children}) => {
         }
     }
 
-    const period = async (n , s, e)=>{
-
-  
-      
-        await axios.post("http://localhost:3002/resetParameters").then(response => {
-      
-            //console.log(response);
-            //console.log(response.data);   
-        });
-    
-       
-            const data = {"name" : n, "start" : s, "end" : e};
-           
-
-           await axios.post("http://localhost:3002/addParameters", data).then(response => {
-      
-              //console.log(response);
-              //console.log(response.data);   
-          });
-      
-        seterr2("Refresh the page");
-        router.push("/");
-
-
-
-
-       // console.log(startDate);
-       // setStartDate(startDate);
-     
-    }
-    
-
-    const getPeriod = async ()=>{
-        var startDict = {};
-        var EndDict = {};
-        var temp;
-       
-        await axios.get("http://localhost:3002/getParameters").then(response => {
-            var Rdata = response.data;
-            
-            Rdata.map((data, key) =>{
-    
-            startDict[data.name] = data.start;
-            EndDict[data.name] = data.end;
-    
-          // console.log("Start Voting : " + startDict.voting, "End Voting :" + EndDict.voting);
-           
-            });
-    
-    
-          
-//console.log(startDict.voting)   
-            temp = [startDict, EndDict];
-            
-            
-    });
-
-    var sd = new Date(temp[0].voting);
-    var ed  = new Date(temp[1].voting);
-
-    sd = sd.toLocaleDateString();
-    ed = ed.toLocaleDateString();
-
-    
-            setStartingDate(temp[0].voting);
-            setEndingDate(temp[1].voting);
-            setshortStartingDate(sd);
-            setshortEndingDate(ed);
-   // console.log(temp[0].voting);
-   // return temp;
-    //setVotingPeriod(temp);
-    
-    
-    }
-
-    const getDisabledStats = async (sd, ed)=>{
-       const today = new Date();
-       var sd = new Date(sd);
-       var ed  = new Date(ed);
-       
-        //console.log(ssd);
-       
-        if ((sd < today)&&(ed > today) ){
-           setDisabled(false);
-           seterr("");
-        }else{
-            setDisabled(true);
-            seterr("Voting is disabled");
-        }
-
-      
-
-    }
-    
-
-
     const createVoter = async(formInput, router)=>{
 
-
-        var stat = false;
-        const regex2 = "[a-z]{1,2}[ -\']{1}[A-Z]{1}[a-z]{1,30}";
-       
         const regex = "[0-9]+-[A-Za-z0-9]+";
-      try{
+        try{
 
             const {name ,address, nationalId} = formInput;
-
-            
-
-        voterArray.map((el) =>(
-            (el[2] === nationalId)&&(
-                
-            stat = true
-           
-            )
-            
-
-
-        ))
-        //console.log(stat);
-            
-           // console.log(exists);
             //console.log(name, address, position);
-            
             if(!name || !address || !nationalId){
                 return console.log("Input Data is Missing")
-            } else if(!name.match(regex2)){
-
-
-
-                seterr2("Enter full name");
-            }else if (nationalId.match(regex) && (nationalId.length == 13)&&(stat == false) ){
+            }else if (nationalId.match(regex) && (nationalId.length == 13) ){
+            
+           
             
             const web3modal = new Web3modal();
             const connection = await web3modal.connect();
@@ -237,12 +110,6 @@ export const VotingProvider = ({children}) => {
             //console.log(voter);
             router.push("voterList")
             
-            }else if (nationalId.match(regex) && (nationalId.length == 13)&&(stat == true) ){
-
-                console.log("A user with the same ID number already exists");
-                seterr("A user with the same ID number already exists");
-            
-
             }else{
                 console.log("National ID should 13 Characters long & should be of the form 00-0000000X00");
                 seterr("National ID should be 13 Characters long & should be of the form 00-0000000X00");
@@ -251,10 +118,7 @@ export const VotingProvider = ({children}) => {
         }catch(error){
             seterr(error);
         }
-     
-        stat = false;
     }
-    
 
     const getAllVoterData = async () => {
 
@@ -306,45 +170,21 @@ export const VotingProvider = ({children}) => {
             router.push("/");
             
         } catch (error) {
-            //seterr("You Already Voted");
+            seterr(error);
         }
     }
 
 
     const setCandidate = async(candidateForm,imgUrl, router)=>{
-
-        const regex2 = "[a-z]{1,2}[ -\']{1}[A-Z]{1}[a-z]{1,30}";
-        var candidatestat = false;
-        const {name , address, position} = candidateForm;
-
-        candidateArray.map((el) =>(
-            (el[5] === address)&&(
-                
-            candidatestat = true
-           
-            )
-            
-
-
-        ))
-
         try{
 
-            
+            const {name , address, position} = candidateForm;
             //console.log(name, address, position);
             if(!name || !address || !position){
                 return console.log("Input Data is Missing")
-            }else if(candidatestat == true){
-                console.log("Candidate already exists");
+            }
 
-                seterr(("This Candidate already exists"))
-            }else if(!name.match(regex2)){
-
-
-                seterr2(("Enter Full Name and Surname"));
-
-            }else{
-                const web3modal = new Web3modal();
+            const web3modal = new Web3modal();
             const connection = await web3modal.connect();
             const provider = new ethers.providers.Web3Provider(connection);
             const signer = provider.getSigner();
@@ -356,11 +196,8 @@ export const VotingProvider = ({children}) => {
             const candidate = await contract.setCandidate(address, position, name, imgUrl );
             candidate.wait();
             console.log(candidate);
-            router.push("/");
-            }
-
             //console.log(name , age, address);
-            //
+            //router.push("/")
 
 
         }catch(error){
@@ -419,26 +256,51 @@ export const VotingProvider = ({children}) => {
     }
 
 
-    const accountStatus = async () =>{
+    const accountStatus = async =>{
+        checkIfWalletIsConnected();
         getAllVoterData();
-      
-        connectWallet();
-        
-           
-            
-            //console.log("yes");
-            
-            
-       
 
-      
-        
-       
+        voterArray.map((el, id) =>{
+            console.log(el[3]);
+            if(el[3].toUpperCase() == currentAccount.toUpperCase()){
+                console.log("voter");
+              return setStatus(true);
+            }
+            
+          })
+
          
     }
 
- 
-   
+    const isNew = () =>{
+        checkIfWalletIsConnected();
+
+        getOrganizer();
+        if ((RegVoter == false) & (currentAccount.toUpperCase() != organizerAddress.toUpperCase())){
+
+            setNewUser(true)
+
+            router.push("allowd-voters")
+            
+        }
+
+        
+    };
+    const isVoter = () => {
+        getAllVoterData();
+        voterArray.map((el) =>(
+
+            (currentAccount.toUpperCase() === el[3].toUpperCase())&&(
+
+                setRegVoter(true)
+                
+            )
+                
+
+        ))
+
+        
+    };
 
 
 
@@ -447,18 +309,18 @@ export const VotingProvider = ({children}) => {
         getAllVoterData();
         getNewCandidate();
         getOrganizer();
-      
+        accountStatus();
         checkIfWalletIsConnected();
-        getPeriod();
-        accountStatus();  
-        //console.log(voterStatus);
-      //console.log(startingDate);
-   
+        isNew();
+        isVoter();
+        console.log(RegVoter);
+
+        console.log(currentStatus);
        }, []);
     
 
     return(
-        <VotingContext.Provider value ={{getDisabledStats, disabled,getPeriod,votingTitle, checkIfWalletIsConnected, connectWallet, uploadToIPFS, createVoter, setCandidate, giveVote, getNewCandidate, getAllVoterData, voterArray, voterLength, period, voterAddress, currentAccount, candidateLength, candidateArray, organizerAddress, currentStatus,  error, error2,startingDate, endingDate, shortEndingDate, shortStartingDate, voterStatus}}>
+        <VotingContext.Provider value ={{votingTitle, checkIfWalletIsConnected, connectWallet, uploadToIPFS, createVoter, setCandidate, giveVote, getNewCandidate, voterArray, voterLength, voterAddress, currentAccount, candidateLength, candidateArray, organizerAddress, currentStatus, RegVoter, isNewUser,  error}}>
             {children}
         </VotingContext.Provider>
     )

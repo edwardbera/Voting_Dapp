@@ -1,4 +1,4 @@
-Ethereum Voting Application
+**Ethereum Voting Application**
 
 #PREREQUISITES
 - Nodejs 16.0 or greater( download : https://nodejs.org/en/download/)
